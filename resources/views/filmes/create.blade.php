@@ -65,6 +65,9 @@
             @endforeach
         </select>
     </div>
+    <div class="form-actions">
+    <a href="{{ route('filmes.index') }}" class="btn btn-outline-secondary">Cancelar</a>
     <button type="submit" class="btn btn-success">Salvar Filme</button>
+</div>
 </form>
 @endsection
