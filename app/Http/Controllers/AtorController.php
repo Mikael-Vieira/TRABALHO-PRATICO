@@ -6,6 +6,7 @@ use App\Models\Ator;
 use App\Models\Nacionalidade;
 use App\Models\Filme;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class AtorController extends Controller
 {
@@ -68,28 +69,49 @@ class AtorController extends Controller
     }
 
     // Requisito 2.6: Página separada de filtro
-    public function relatorio(Request $request)
-    {
-        $nomeAtor = $request->input('nome_ator');
-        $nomeFilme = $request->input('nome_filme');
+   public function relatorio(Request $request)
+{
+    $nomeAtor = trim($request->string('nome_ator')->toString());
+    $nomeFilme = trim($request->string('nome_filme')->toString());
 
-        $query = Ator::with(['filmes', 'nacionalidade']);
+    $normalizar = fn ($texto) => Str::lower(Str::ascii($texto));
 
-        if ($nomeAtor) {
-            $query->where(function ($q) use ($nomeAtor) {
-                $q->where('nome', 'like', "%{$nomeAtor}%")
-                  ->orWhere('sobrenome', 'like', "%{$nomeAtor}%");
-            });
-        }
+    $atores = Ator::with(['filmes', 'nacionalidade'])->get();
 
-        if ($nomeFilme) {
-            $query->whereHas('filmes', function ($q) use ($nomeFilme) {
-                $q->where('titulo', 'like', "%{$nomeFilme}%");
-            });
-        }
+    if ($nomeAtor !== '') {
+        $termos = preg_split(
+            '/\s+/',
+            $normalizar($nomeAtor),
+            -1,
+            PREG_SPLIT_NO_EMPTY
+        );
 
-        $atores = $query->get();
+        $atores = $atores->filter(function ($ator) use ($termos, $normalizar) {
+            $nomeCompleto = $normalizar($ator->nome . ' ' . $ator->sobrenome);
 
-        return view('relatorios.atores_filmes', compact('atores', 'nomeAtor', 'nomeFilme'));
+            foreach ($termos as $termo) {
+                if (!str_contains($nomeCompleto, $termo)) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
     }
+
+    if ($nomeFilme !== '') {
+        $atores = $atores->filter(function ($ator) use ($nomeFilme, $normalizar) {
+            return $ator->filmes->contains(function ($filme) use ($nomeFilme, $normalizar) {
+                return str_contains(
+                    $normalizar($filme->titulo),
+                    $normalizar($nomeFilme)
+                );
+            });
+        });
+    }
+
+    return view('relatorios.atores_filmes', compact(
+        'atores', 'nomeAtor', 'nomeFilme'
+    ));
+}
 }
