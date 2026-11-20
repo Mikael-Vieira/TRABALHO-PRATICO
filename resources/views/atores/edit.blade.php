@@ -43,6 +43,9 @@
             @endforeach
         </select>
     </div>
+   <div class="form-actions">
+    <a href="{{ route('atores.index') }}" class="btn btn-outline-secondary">Cancelar</a>
     <button type="submit" class="btn btn-success">Atualizar Ator</button>
+</div>
 </form>
 @endsection

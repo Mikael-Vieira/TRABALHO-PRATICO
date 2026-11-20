@@ -7,6 +7,9 @@
         <label class="form-label">Nome</label>
         <input type="text" name="nome" class="form-control" required>
     </div>
-    <button type="submit" class="btn btn-success">Salvar</button>
+    <div class="form-actions">
+    <a href="{{ route('idiomas.index') }}" class="btn btn-outline-secondary">Cancelar</a>
+    <button type="submit" class="btn btn-success">Salvar Idioma</button>
+</div>
 </form>
 @endsection
